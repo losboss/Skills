@@ -27,7 +27,7 @@ Lives in this repo following its existing skill conventions (see `namecheap-doma
 ```
 
 Also update the repo `README.md` skill table with a `naming-projects` row.
-Built using the repo's **`skill-builder`** skill (the established authoring path here).
+Authored to match this repo's existing skill structure (frontmatter + `SKILL.md` + `references/`).
 
 ## Workflow (what the skill instructs Claude to do)
 
@@ -110,4 +110,4 @@ registrar before purchasing.
 - **Zero-setup baseline** — RDAP + DNS work with no API keys; the paid/authoritative
   providers are purely additive when their credentials are present.
 - **Never invent TLDs** — curated allowlist + IANA validation guarantees real domains only.
-- **Authored via `skill-builder`** and committed to this repo, with the README table updated.
+- **Committed to this repo**, following the existing skill layout, with the README table updated.
