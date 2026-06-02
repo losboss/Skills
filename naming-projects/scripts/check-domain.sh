@@ -84,7 +84,7 @@ reconcile() {
 # rdap_status DOMAIN -> available | registered | unknown
 rdap_status() {
   local code
-  code="$(curl -s -o /dev/null -w '%{http_code}' --max-time 8 "https://rdap.org/domain/$1")"
+  code="$(curl -sL -o /dev/null -w '%{http_code}' --max-time 10 "https://rdap.org/domain/$1")"
   case "$code" in
     404) printf 'available' ;;
     200) printf 'registered' ;;
