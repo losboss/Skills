@@ -172,6 +172,50 @@ check_whoisjson() {
   esac
 }
 
+# check_namecheap DOMAIN -> emits line; falls back to RDAP/DNS on error
+check_namecheap() {
+  local d="$1" resp avail
+  resp="$(printf '%s\n' \
+      'url = "https://api.namecheap.com/xml.response"' \
+      'get' \
+      "data-urlencode = \"ApiUser=$NAMECHEAP_API_USER\"" \
+      "data-urlencode = \"ApiKey=$NAMECHEAP_API_KEY\"" \
+      "data-urlencode = \"UserName=$NAMECHEAP_USERNAME\"" \
+      "data-urlencode = \"ClientIp=$NAMECHEAP_CLIENT_IP\"" \
+      'data-urlencode = "Command=namecheap.domains.check"' \
+      "data-urlencode = \"DomainList=$d\"" \
+    | curl -s --max-time 12 --config -)"
+  avail="$(printf '%s' "$resp" \
+    | grep -o 'Available="[a-zA-Z]*"' | head -1 \
+    | sed 's/.*"\(.*\)"/\1/' | tr '[:upper:]' '[:lower:]')"
+  case "$avail" in
+    true)  emit "$d" available namecheap "" ;;
+    false) emit "$d" registered namecheap "" ;;
+    *)     check_rdap_dns "$d" ;;
+  esac
+}
+
+# check_cloudflare DOMAIN -> emits line; falls back to RDAP/DNS on error
+# POST /accounts/{account_id}/registrar/domain-check
+# Request body: {"domains":["<domain>"]}
+# Response: {"success":true,"result":{"domains":[{"name":"...","registrable":<bool>,...}]}}
+check_cloudflare() {
+  local d="$1" resp avail
+  resp="$(printf 'header = "Authorization: Bearer %s"\n' "$CLOUDFLARE_API_TOKEN" \
+    | curl -s --max-time 10 --config - \
+        -H "Content-Type: application/json" \
+        -X POST \
+        --data "{\"domains\":[\"$d\"]}" \
+        "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/registrar/domain-check")"
+  # registrable=true -> available; registrable=false -> registered
+  avail="$(printf '%s' "$resp" | jq -r '.result.domains[0].registrable // empty' 2>/dev/null)"
+  case "$avail" in
+    true)  emit "$d" available cloudflare "" ;;
+    false) emit "$d" registered cloudflare "" ;;
+    *)     check_rdap_dns "$d" ;;
+  esac
+}
+
 main() {
   printf 'not yet implemented\n' >&2
   return 1
