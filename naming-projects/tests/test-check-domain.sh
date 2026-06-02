@@ -37,5 +37,13 @@ assert_eq "provider godaddy" "godaddy" "$(GODADDY_KEY=a GODADDY_SECRET=b select_
 assert_eq "provider namecheap" "namecheap" "$(NAMECHEAP_API_USER=u NAMECHEAP_API_KEY=k NAMECHEAP_USERNAME=u NAMECHEAP_CLIENT_IP=1.2.3.4 select_provider)"
 assert_eq "provider cloudflare wins" "cloudflare" "$(CLOUDFLARE_API_TOKEN=t CLOUDFLARE_ACCOUNT_ID=a GODADDY_KEY=a GODADDY_SECRET=b select_provider)"
 
+# emit: tab-separated normalized line
+assert_eq "emit format" "$(printf 'lumora.com\tavailable\trdap\t')" "$(emit lumora.com available rdap '')"
+# reconcile: rdap-available but DNS resolves -> registered
+assert_eq "reconcile parked" "registered" "$(reconcile available yes)"
+assert_eq "reconcile clean available" "available" "$(reconcile available no)"
+assert_eq "reconcile registered passthrough" "registered" "$(reconcile registered no)"
+assert_eq "reconcile unknown passthrough" "unknown" "$(reconcile unknown no)"
+
 printf '\n%d passed, %d failed\n' "$PASS" "$FAIL"
 [[ "$FAIL" -eq 0 ]]

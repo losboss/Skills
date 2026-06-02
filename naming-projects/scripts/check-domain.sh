@@ -65,6 +65,22 @@ select_provider() {
   fi
 }
 
+# emit DOMAIN STATUS SOURCE NOTE -> one tab-separated line
+emit() {
+  printf '%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4"
+}
+
+# reconcile RDAP_STATUS DNS_RESOLVES(yes|no) -> final status
+# An RDAP 404 ("available") for a name that resolves in DNS is treated as registered
+# (parked/reserved names can 404 in RDAP).
+reconcile() {
+  if [[ "$1" == "available" && "$2" == "yes" ]]; then
+    printf 'registered'
+  else
+    printf '%s' "$1"
+  fi
+}
+
 main() {
   printf 'not yet implemented\n' >&2
   return 1
