@@ -122,6 +122,51 @@ check_rdap_dns() {
   fi
 }
 
+# json_get FIELD  (reads JSON on stdin) -> value of top-level FIELD, or empty
+json_get() {
+  if command -v jq >/dev/null 2>&1; then
+    jq -r --arg f "$1" '.[$f] // empty' 2>/dev/null
+  else
+    python3 -c 'import sys,json
+try:
+    d=json.load(sys.stdin)
+    v=d.get(sys.argv[1],"")
+    print("" if v is None else (str(v).lower() if isinstance(v,bool) else v))
+except Exception:
+    pass' "$1"
+  fi
+}
+
+# check_godaddy DOMAIN -> emits line; falls back to RDAP/DNS on error
+check_godaddy() {
+  local d="$1" resp avail
+  resp="$(curl -s --max-time 10 \
+    -H "Authorization: sso-key ${GODADDY_KEY}:${GODADDY_SECRET}" \
+    -H "Accept: application/json" \
+    "https://api.godaddy.com/v1/domains/available?domain=$d")"
+  avail="$(printf '%s' "$resp" | json_get available)"
+  case "$avail" in
+    true)  emit "$d" available godaddy "" ;;
+    false) emit "$d" registered godaddy "" ;;
+    *)     check_rdap_dns "$d" ;;
+  esac
+}
+
+# check_whoisjson DOMAIN -> emits line; falls back to RDAP/DNS on error
+# WhoisJSON returns a JSON object; "registered" is a boolean field.
+check_whoisjson() {
+  local d="$1" resp registered
+  resp="$(curl -s --max-time 12 \
+    -H "Authorization: TOKEN=${WHOISJSON_API_KEY}" \
+    "https://whoisjson.com/api/v1/whois?domain=$d")"
+  registered="$(printf '%s' "$resp" | json_get registered)"
+  case "$registered" in
+    false) emit "$d" available whoisjson "" ;;
+    true)  emit "$d" registered whoisjson "" ;;
+    *)     check_rdap_dns "$d" ;;
+  esac
+}
+
 main() {
   printf 'not yet implemented\n' >&2
   return 1
