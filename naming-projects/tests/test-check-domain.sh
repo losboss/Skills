@@ -45,5 +45,14 @@ assert_eq "reconcile clean available" "available" "$(reconcile available no)"
 assert_eq "reconcile registered passthrough" "registered" "$(reconcile registered no)"
 assert_eq "reconcile unknown passthrough" "unknown" "$(reconcile unknown no)"
 
+# Live RDAP smoke test — skip if no network
+if curl -s -o /dev/null --max-time 5 https://rdap.org/ ; then
+  assert_eq "rdap google.com registered" "registered" "$(rdap_status google.com)"
+  line="$(check_rdap_dns google.com)"
+  assert_eq "check_rdap_dns google status" "registered" "$(printf '%s' "$line" | cut -f2)"
+else
+  printf 'SKIP: live RDAP smoke test (no network)\n'
+fi
+
 printf '\n%d passed, %d failed\n' "$PASS" "$FAIL"
 [[ "$FAIL" -eq 0 ]]

@@ -81,6 +81,47 @@ reconcile() {
   fi
 }
 
+# rdap_status DOMAIN -> available | registered | unknown
+rdap_status() {
+  local code
+  code="$(curl -s -o /dev/null -w '%{http_code}' --max-time 8 "https://rdap.org/domain/$1")"
+  case "$code" in
+    404) printf 'available' ;;
+    200) printf 'registered' ;;
+    *)   printf 'unknown' ;;
+  esac
+}
+
+# dns_resolves DOMAIN -> yes | no  (has NS or A records)
+dns_resolves() {
+  local ns a
+  ns="$(dig +short NS "$1" 2>/dev/null)"
+  a="$(dig +short A "$1" 2>/dev/null)"
+  if [[ -n "$ns" || -n "$a" ]]; then printf 'yes'; else printf 'no'; fi
+}
+
+# check_rdap_dns DOMAIN -> emits a normalized line using RDAP, with DNS cross-check/fallback
+check_rdap_dns() {
+  local d="$1" r dns final
+  r="$(rdap_status "$d")"
+  if [[ "$r" == "unknown" ]]; then
+    # RDAP doesn't cover this TLD (or errored) -> fall back to a DNS hint only
+    if [[ "$(dns_resolves "$d")" == "yes" ]]; then
+      emit "$d" registered dns "resolves in DNS"
+    else
+      emit "$d" available dns "no DNS records (hint only — confirm at a registrar)"
+    fi
+    return 0
+  fi
+  dns="$(dns_resolves "$d")"
+  final="$(reconcile "$r" "$dns")"
+  if [[ "$final" == "registered" && "$r" == "available" ]]; then
+    emit "$d" registered rdap+dns "RDAP 404 but resolves in DNS (parked/reserved)"
+  else
+    emit "$d" "$final" rdap ""
+  fi
+}
+
 main() {
   printf 'not yet implemented\n' >&2
   return 1
