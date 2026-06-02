@@ -130,8 +130,13 @@ json_get() {
     python3 -c 'import sys,json
 try:
     d=json.load(sys.stdin)
-    v=d.get(sys.argv[1],"")
-    print("" if v is None else (str(v).lower() if isinstance(v,bool) else v))
+    v=d.get(sys.argv[1])
+    if isinstance(v,bool):
+        print(str(v).lower())
+    elif isinstance(v,(str,int,float)):
+        print(v)
+    else:
+        print("")
 except Exception:
     pass' "$1"
   fi
@@ -140,10 +145,10 @@ except Exception:
 # check_godaddy DOMAIN -> emits line; falls back to RDAP/DNS on error
 check_godaddy() {
   local d="$1" resp avail
-  resp="$(curl -s --max-time 10 \
-    -H "Authorization: sso-key ${GODADDY_KEY}:${GODADDY_SECRET}" \
-    -H "Accept: application/json" \
-    "https://api.godaddy.com/v1/domains/available?domain=$d")"
+  resp="$(printf 'header = "Authorization: sso-key %s:%s"\n' "$GODADDY_KEY" "$GODADDY_SECRET" \
+    | curl -s --max-time 10 --config - \
+        -H "Accept: application/json" \
+        "https://api.godaddy.com/v1/domains/available?domain=$d")"
   avail="$(printf '%s' "$resp" | json_get available)"
   case "$avail" in
     true)  emit "$d" available godaddy "" ;;
@@ -156,9 +161,9 @@ check_godaddy() {
 # WhoisJSON returns a JSON object; "registered" is a boolean field.
 check_whoisjson() {
   local d="$1" resp registered
-  resp="$(curl -s --max-time 12 \
-    -H "Authorization: TOKEN=${WHOISJSON_API_KEY}" \
-    "https://whoisjson.com/api/v1/whois?domain=$d")"
+  resp="$(printf 'header = "Authorization: TOKEN=%s"\n' "$WHOISJSON_API_KEY" \
+    | curl -s --max-time 12 --config - \
+        "https://whoisjson.com/api/v1/whois?domain=$d")"
   registered="$(printf '%s' "$resp" | json_get registered)"
   case "$registered" in
     false) emit "$d" available whoisjson "" ;;
