@@ -217,8 +217,27 @@ check_cloudflare() {
 }
 
 main() {
-  printf 'not yet implemented\n' >&2
-  return 1
+  if [[ $# -lt 1 || -z "${1:-}" ]]; then
+    printf 'usage: check-domain.sh DOMAIN\n' >&2
+    return 2
+  fi
+  local domain tld provider
+  domain="$(lc "$1")"
+  tld="$(extract_tld "$domain")"
+
+  if ! validate_tld "$tld"; then
+    emit "$domain" unknown tld "unrecognized TLD '$tld' — not a real TLD"
+    return 0
+  fi
+
+  provider="$(select_provider)"
+  case "$provider" in
+    cloudflare) check_cloudflare "$domain" ;;
+    namecheap)  check_namecheap  "$domain" ;;
+    godaddy)    check_godaddy    "$domain" ;;
+    whoisjson)  check_whoisjson  "$domain" ;;
+    rdap|*)     check_rdap_dns   "$domain" ;;
+  esac
 }
 
 if [[ -z "${TESTONLY:-}" ]]; then
