@@ -49,6 +49,22 @@ validate_tld() {
   return $rc
 }
 
+# select_provider -> name of the best provider whose credentials are present
+select_provider() {
+  if [[ -n "${CLOUDFLARE_API_TOKEN:-}" && -n "${CLOUDFLARE_ACCOUNT_ID:-}" ]]; then
+    printf 'cloudflare'
+  elif [[ -n "${NAMECHEAP_API_USER:-}" && -n "${NAMECHEAP_API_KEY:-}" \
+          && -n "${NAMECHEAP_USERNAME:-}" && -n "${NAMECHEAP_CLIENT_IP:-}" ]]; then
+    printf 'namecheap'
+  elif [[ -n "${GODADDY_KEY:-}" && -n "${GODADDY_SECRET:-}" ]]; then
+    printf 'godaddy'
+  elif [[ -n "${WHOISJSON_API_KEY:-}" ]]; then
+    printf 'whoisjson'
+  else
+    printf 'rdap'
+  fi
+}
+
 main() {
   printf 'not yet implemented\n' >&2
   return 1

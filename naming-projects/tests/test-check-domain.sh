@@ -28,5 +28,14 @@ validate_tld dev; assert_eq "validate_tld dev (iana)" "0" "$?"
 validate_tld zzznotreal; assert_eq "validate_tld bogus" "1" "$?"
 validate_tld ""; assert_eq "validate_tld empty arg" "1" "$?"
 
+# select_provider precedence (unset everything first)
+unset CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID NAMECHEAP_API_USER NAMECHEAP_API_KEY \
+      NAMECHEAP_USERNAME NAMECHEAP_CLIENT_IP GODADDY_KEY GODADDY_SECRET WHOISJSON_API_KEY 2>/dev/null || true
+assert_eq "provider default rdap" "rdap" "$(select_provider)"
+assert_eq "provider whoisjson" "whoisjson" "$(WHOISJSON_API_KEY=x select_provider)"
+assert_eq "provider godaddy" "godaddy" "$(GODADDY_KEY=a GODADDY_SECRET=b select_provider)"
+assert_eq "provider namecheap" "namecheap" "$(NAMECHEAP_API_USER=u NAMECHEAP_API_KEY=k NAMECHEAP_USERNAME=u NAMECHEAP_CLIENT_IP=1.2.3.4 select_provider)"
+assert_eq "provider cloudflare wins" "cloudflare" "$(CLOUDFLARE_API_TOKEN=t CLOUDFLARE_ACCOUNT_ID=a GODADDY_KEY=a GODADDY_SECRET=b select_provider)"
+
 printf '\n%d passed, %d failed\n' "$PASS" "$FAIL"
 [[ "$FAIL" -eq 0 ]]
