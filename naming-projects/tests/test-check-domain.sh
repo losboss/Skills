@@ -26,6 +26,7 @@ validate_tld com; assert_eq "validate_tld com (curated)" "0" "$?"
 validate_tld dev; assert_eq "validate_tld dev (iana)" "0" "$?"
 # validate_tld: bogus
 validate_tld zzznotreal; assert_eq "validate_tld bogus" "1" "$?"
+validate_tld ""; assert_eq "validate_tld empty arg" "1" "$?"
 
 printf '\n%d passed, %d failed\n' "$PASS" "$FAIL"
 [[ "$FAIL" -eq 0 ]]

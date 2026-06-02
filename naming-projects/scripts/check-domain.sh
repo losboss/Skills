@@ -21,8 +21,9 @@ extract_tld() {
 # fetch_iana_to_tmp -> writes lowercased IANA TLD list to a temp file, echoes its path
 fetch_iana_to_tmp() {
   local tmp; tmp="$(mktemp)" || return 1
-  if curl -fsS --max-time 15 "https://data.iana.org/TLD/tlds-alpha-by-domain.txt" \
-      | grep -v '^#' | tr '[:upper:]' '[:lower:]' > "$tmp" && [[ -s "$tmp" ]]; then
+  if ( set -o pipefail; curl -fsS --max-time 15 \
+        "https://data.iana.org/TLD/tlds-alpha-by-domain.txt" \
+        | grep -v '^#' | tr '[:upper:]' '[:lower:]' > "$tmp" ) && [[ -s "$tmp" ]]; then
     printf '%s' "$tmp"
     return 0
   fi
@@ -32,15 +33,20 @@ fetch_iana_to_tmp() {
 
 # validate_tld TLD -> 0 if a real TLD (curated allowlist, then IANA), else 1
 validate_tld() {
+  [[ -z "${1:-}" ]] && return 1
   local tld; tld="$(lc "$1")"
   if grep -qxF "$tld" "$TLDS_FILE" 2>/dev/null; then
     return 0
   fi
-  local cache="${IANA_CACHE:-}"
+  local cache="${IANA_CACHE:-}" created=""
   if [[ -z "$cache" ]]; then
     cache="$(fetch_iana_to_tmp)" || return 1
+    created="$cache"
   fi
-  grep -qxF "$tld" "$cache"
+  local rc
+  grep -qxF "$tld" "$cache"; rc=$?
+  [[ -n "$created" ]] && rm -f "$created"
+  return $rc
 }
 
 main() {
