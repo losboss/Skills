@@ -63,6 +63,33 @@ in this order. With none set it uses RDAP + DNS (no setup required).
 
 Availability is never a guarantee — always tell the user to confirm at a registrar.
 
+### Cloudflare setup (optional, preferred provider)
+
+Cloudflare is the most authoritative provider. It activates only when **both** env vars are
+set; if either is missing, the script falls through to the next provider.
+
+1. **Create an API token** at <https://dash.cloudflare.com/profile/api-tokens> → *Create
+   Token* → *Create Custom Token*. Give it an **Account**-scoped permission for domain
+   registration (the Registrar API is account-scoped, not zone-scoped). Copy the token value
+   (shown only once).
+2. **Find your Account ID** in the dashboard URL (`dash.cloudflare.com/<ACCOUNT_ID>/...`) or
+   the account overview — a 32-character hex string.
+3. **Export both** (add to `~/.zshrc` to persist):
+   ```sh
+   export CLOUDFLARE_API_TOKEN="your-token-here"
+   export CLOUDFLARE_ACCOUNT_ID="your-account-id-here"
+   ```
+4. **Verify:** `scripts/check-domain.sh google.com` — the 3rd (tab-separated) column shows the
+   source. With the token set it reads `cloudflare`; without it, `rdap`. The token is piped to
+   `curl` via stdin config, so it never appears in the process list.
+
+If the source column keeps showing `rdap` despite both vars being set, the cause is usually a
+token without the right account permission, a wrong Account ID, or missing `jq` (Cloudflare
+parsing requires `jq`) — the script falls back to RDAP rather than erroring in all these cases.
+
+The same env-var pattern applies to the other credentialed providers (see the table above):
+set their variables and the script auto-selects the highest-priority one available.
+
 ## Requirements
 
 - `curl` and `dig` (preinstalled on macOS) — used for RDAP and DNS.
