@@ -125,7 +125,7 @@ check_rdap_dns() {
 # json_get FIELD  (reads JSON on stdin) -> value of top-level FIELD, or empty
 json_get() {
   if command -v jq >/dev/null 2>&1; then
-    jq -r --arg f "$1" '.[$f] // empty' 2>/dev/null
+    jq -r --arg f "$1" 'if has($f) then .[$f] else empty end' 2>/dev/null
   else
     python3 -c 'import sys,json
 try:
@@ -208,7 +208,7 @@ check_cloudflare() {
         --data "{\"domains\":[\"$d\"]}" \
         "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/registrar/domain-check")"
   # registrable=true -> available; registrable=false -> registered
-  avail="$(printf '%s' "$resp" | jq -r '.result.domains[0].registrable // empty' 2>/dev/null)"
+  avail="$(printf '%s' "$resp" | jq -r '.result.domains[0].registrable' 2>/dev/null)"
   case "$avail" in
     true)  emit "$d" available cloudflare "" ;;
     false) emit "$d" registered cloudflare "" ;;

@@ -54,5 +54,10 @@ else
   printf 'SKIP: live RDAP smoke test (no network)\n'
 fi
 
+# json_get must preserve boolean false (jq // empty bug regression)
+assert_eq "json_get false bool" "false" "$(printf '{"available":false}' | json_get available)"
+assert_eq "json_get true bool" "true" "$(printf '{"available":true}' | json_get available)"
+assert_eq "json_get missing field" "" "$(printf '{"x":1}' | json_get available)"
+
 printf '\n%d passed, %d failed\n' "$PASS" "$FAIL"
 [[ "$FAIL" -eq 0 ]]
