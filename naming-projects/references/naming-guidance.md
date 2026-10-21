@@ -29,8 +29,9 @@ Strength: memorable and warm. Weakness: can be opaque without context.
 
 - **Hard to spell or say** — if you'd need to spell it aloud, drop it.
 - **Awkward in code / URLs** — hyphens, doubled letters, digits-as-words.
-- **Trademark collision risk** — obvious clashes with well-known brands (lightweight
-  heuristic only; tell the user to do a real trademark search).
+- **Trademark collision risk** — obvious clashes with well-known brands while brainstorming;
+  the shortlist then gets the register screen in SKILL.md step 4 (CIPO and USPTO).
+- **Descriptive words** — an ordinary word for what is sold may be refused as a trademark.
 - **Negative or unintended meaning** — especially in other major languages.
 - **Pluralization / "the" traps** — name already plural, or only works with "the".
 

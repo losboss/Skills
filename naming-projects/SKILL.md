@@ -1,11 +1,11 @@
 ---
 name: naming-projects
-description: Brainstorm names for a project and propose real, verified-available domain names. Use when the user wants to name a project, app, product, company, library, newsletter, or brand; mentions "name ideas", "what should I call", "naming", "brand name", "domain name", "available domain", "check domain", or "is this domain taken". Generates candidates across four naming styles and verifies domain availability before suggesting.
+description: Brainstorm names for a project, propose real, verified-available domain names, and screen the shortlist against the trademark registers before anyone buys a domain. Use when the user wants to name a project, app, product, company, library, newsletter, or brand; mentions "name ideas", "what should I call", "naming", "brand name", "domain name", "available domain", "check domain", or "is this domain taken", "trademark search", "is this name trademarked". Generates candidates across four naming styles, verifies domain availability and checks the trademark registers before suggesting.
 metadata:
   author: Matthew
-  version: 1.0.0
+  version: 1.1.0
   category: productivity
-  tags: [naming, branding, domains, brainstorming, availability]
+  tags: [naming, branding, domains, brainstorming, availability, trademarks]
 ---
 
 # Naming Projects
@@ -42,10 +42,38 @@ Output is tab-separated: `domain<TAB>status<TAB>source<TAB>note`, where status i
 Never suggest a domain whose status is `registered`. **Never invent TLDs** — the script
 rejects unreal TLDs with status `unknown` / source `tld`.
 
-### 4. Present results
-Group by naming style. For each kept name: the name, its one-line rationale, and its
-available domain option(s) with the source noted. Always end with:
-"Likely available — confirm at a registrar before buying."
+### 4. Check trademarks (before anyone buys a domain)
+A domain can be free while the name is unusable. Screen every name you are about to present
+against the trademark register of each country the project will trade in. Canada and the US
+by default; ask if it is unclear. Do this **before** step 5, so a name is never chosen, and a
+domain never bought, on the strength of an available domain alone.
+
+- **Canada: CIPO's Canadian Trademarks Database**, <https://ised-isde.canada.ca/cipo/trademark-search/srch>.
+  It is a JavaScript app, so use a browser (Playwright or Chrome). Set the field to **Trademark**,
+  then search the exact word, its singular or plural, and a stem with a wildcard (`sundr*`).
+  The search matches whole words, so the wildcard is what catches compounds and near spellings.
+  Open any live record that is close and read its owner, classes, goods and services, and status.
+- **US: USPTO Trademark Search**, <https://tmsearch.uspto.gov/>. Search the same way.
+- **Which classes matter.** Look first at the Nice classes the project will use: 35 for retail,
+  marketplaces and business services, 42 for software and SaaS, 9 for downloadable software,
+  and 39 for delivery. Then look at any class that matches what is sold.
+- **Official marks (Canada, section 9 "Prohibited Mark; Official Mark").** These belong to public
+  authorities and block any mark that closely resembles them **in every class**, not just one.
+  Flag every one that contains the word, whoever owns it.
+- **Descriptive names.** An ordinary word for what the business sells (for example "Sundries" for
+  a store of everyday goods) may be refused as clearly descriptive, even with no conflicting mark.
+  Say so beside the name.
+- **Report per name:** Clear, Close mark (name the mark, number, classes and status), or
+  Descriptive risk. Live marks matter. Abandoned or expunged ones only matter as history.
+
+This is a screen, not clearance. For the name that is actually chosen, recommend a trademark
+agent's search and opinion before launch.
+
+### 5. Present results
+Group by naming style. For each kept name: the name, its one-line rationale, its
+available domain option(s) with the source noted, and its trademark screen result. Always end with:
+"Likely available — confirm at a registrar before buying. The trademark screen is not
+clearance; get an agent's opinion on the name you choose."
 
 ## Availability providers
 

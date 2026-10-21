@@ -95,7 +95,7 @@ registrar before purchasing.
 ## Out of scope (YAGNI)
 
 - Actually registering/purchasing domains (the `namecheap-domains` skill handles registration)
-- Trademark/legal clearance (only a lightweight heuristic caution)
+- Trademark/legal clearance: the skill screens the CIPO and USPTO registers (SKILL.md step 4), but gives no legal opinion
 - Logo / visual branding
 - Persisting naming history between sessions
 
